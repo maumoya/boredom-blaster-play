@@ -1,0 +1,309 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boredom Blaster</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+</head><body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<style>
+/* Layout: one arcade cabinet screen, centered, marquee above, controls card below. Single dark world by choice. */
+:root {
+  color-scheme: dark;
+  --void: #03030c;
+  --screen: #050514;
+  --ship: #44ddff;
+  --drone: #ff55aa;
+  --spark: #ffdd44;
+  --dim: #7a7fb0;
+  --pixel: "Press Start 2P", ui-monospace, Menlo, monospace;
+  --crt: "VT323", ui-monospace, Menlo, monospace;
+}
+html, body { height: 100%; }
+body {
+  background: radial-gradient(ellipse at 50% 30%, #0d0b2a 0%, var(--void) 70%);
+  color: #fff;
+  font-family: var(--crt);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box; overflow: hidden;
+  -webkit-user-select: none; user-select: none; touch-action: manipulation;
+}
+h1 {
+  margin: 0; font-family: var(--pixel); font-size: clamp(14px, 3.4vw, 22px); letter-spacing: 0.08em;
+  color: var(--spark); text-shadow: 3px 3px 0 var(--drone);
+}
+.cab { position: relative; flex: 1 1 auto; min-height: 0; display: flex; justify-content: center; max-width: 100%; }
+canvas {
+  height: 100%; max-height: 100%; max-width: 100%; aspect-ratio: 3 / 4; background: var(--screen);
+  image-rendering: pixelated; border: 2px solid #1d1a4a; border-radius: 6px;
+  box-shadow: 0 0 0 6px #0a0920, 0 0 40px rgba(68, 221, 255, 0.18);
+}
+.cab::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; margin: 0 auto; aspect-ratio: 3 / 4; height: 100%; max-width: 100%;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); border-radius: 6px;
+}
+.help { margin: 0; font-size: 20px; color: var(--dim); text-align: center; }
+.help b { color: var(--ship); font-weight: normal; }
+.pad { display: none; gap: 12px; width: min(100%, 420px); }
+.pad button {
+  flex: 1; height: 64px; border-radius: 10px; border: 2px solid #2a2660; background: #0c0b26;
+  color: var(--ship); font-family: var(--pixel); font-size: 14px; touch-action: none;
+}
+.pad button[data-key="fire"] { flex: 1.6; color: var(--spark); border-color: #5a4a10; }
+.pad button.down { background: #1c1a4a; }
+@media (pointer: coarse) { .pad { display: flex; } .help { display: none; } }
+@media (prefers-reduced-motion: reduce) { h1 { text-shadow: none; } }
+</style>
+<h1>BOREDOM BLASTER</h1>
+<div class="cab"><canvas id="screen" aria-label="Boredom Blaster game screen"></canvas></div>
+<p class="help"><b>← →</b> move &nbsp; <b>SPACE</b> fire &nbsp; <b>ENTER</b> restart · click the screen first</p>
+<div class="pad" aria-label="Touch controls">
+  <button id="pad-left" data-key="left" aria-label="Move left">◀</button>
+  <button id="pad-fire" data-key="fire" aria-label="Fire">FIRE</button>
+  <button id="pad-right" data-key="right" aria-label="Move right">▶</button>
+</div>
+<script>
+// Boredom Blaster game logic. Plain script (no import/export) so index.html works from file://;
+// the tests load it in Node and read globalThis.BB.
+(function (root) {
+  const W = 480, H = 640;
+  const SHIP = { w: 28, h: 20, speed: 280, y: H - 50 };
+  const BULLET = { w: 4, h: 12, speed: 520, cooldown: 0.25 };
+  const DRONE = { w: 28, h: 20, gapX: 44, gapY: 36, points: 10 };
+  const START_LIVES = 3;
+  const INVULN = 1.5;
+
+  function hit(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function spawnWave(game) {
+    const cols = Math.min(4 + game.wave, 8);
+    const rows = Math.min(1 + Math.ceil(game.wave / 2), 4);
+    const left = (W - (cols - 1) * DRONE.gapX - DRONE.w) / 2;
+    game.drones = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        game.drones.push({ x: left + c * DRONE.gapX, y: 50 + r * DRONE.gapY, w: DRONE.w, h: DRONE.h });
+      }
+    }
+    game.dir = 1;
+  }
+
+  function createGame() {
+    const game = {
+      w: W, h: H,
+      ship: { x: (W - SHIP.w) / 2, y: SHIP.y, w: SHIP.w, h: SHIP.h },
+      bullets: [], drones: [],
+      score: 0, lives: START_LIVES, wave: 1,
+      cooldown: 0, invuln: 0, dir: 1,
+      status: "playing", // "playing" | "over"
+    };
+    spawnWave(game);
+    return game;
+  }
+
+  function shoot(game) {
+    if (game.status !== "playing" || game.cooldown > 0) return false;
+    game.bullets.push({
+      x: game.ship.x + (game.ship.w - BULLET.w) / 2,
+      y: game.ship.y - BULLET.h,
+      w: BULLET.w, h: BULLET.h,
+    });
+    game.cooldown = BULLET.cooldown;
+    return true;
+  }
+
+  function loseLife(game) {
+    game.lives -= 1;
+    game.invuln = INVULN;
+    if (game.lives <= 0) {
+      game.lives = 0;
+      game.status = "over";
+    }
+  }
+
+  // input: { left, right, fire } booleans; dt in seconds
+  function update(game, dt, input) {
+    if (game.status !== "playing") return;
+    input = input || {};
+    const move = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+    game.ship.x = Math.max(0, Math.min(W - game.ship.w, game.ship.x + move * SHIP.speed * dt));
+    game.cooldown = Math.max(0, game.cooldown - dt);
+    game.invuln = Math.max(0, game.invuln - dt);
+    if (input.fire) shoot(game);
+
+    for (const b of game.bullets) b.y -= BULLET.speed * dt;
+    game.bullets = game.bullets.filter((b) => b.y + b.h > 0);
+
+    // drones sweep sideways, drop half a row at each edge; faster with the wave and as the swarm thins
+    const speed = 50 + game.wave * 12 + (40 - Math.min(game.drones.length, 40)) * 2;
+    let edge = false;
+    for (const d of game.drones) {
+      d.x += game.dir * speed * dt;
+      if (d.x <= 0 || d.x + d.w >= W) edge = true;
+    }
+    if (edge) {
+      game.dir = -game.dir;
+      // shift the whole swarm back inside so the formation keeps its spacing
+      const minX = Math.min(...game.drones.map((d) => d.x));
+      const maxX = Math.max(...game.drones.map((d) => d.x + d.w));
+      const shift = minX < 0 ? -minX : maxX > W ? W - maxX : 0;
+      for (const d of game.drones) {
+        d.x += shift;
+        d.y += DRONE.gapY / 2;
+      }
+    }
+
+    // bullets vs drones
+    for (const b of game.bullets) {
+      const i = game.drones.findIndex((d) => hit(b, d));
+      if (i !== -1) {
+        game.drones.splice(i, 1);
+        b.dead = true;
+        game.score += DRONE.points;
+      }
+    }
+    game.bullets = game.bullets.filter((b) => !b.dead);
+
+    // drones reaching the ship or the floor cost a life and are removed
+    for (const d of game.drones) {
+      const touch = game.invuln <= 0 && hit(d, game.ship);
+      if (touch || d.y + d.h >= H) {
+        d.dead = true;
+        if (game.invuln <= 0 && game.status === "playing") loseLife(game);
+      }
+    }
+    game.drones = game.drones.filter((d) => !d.dead);
+
+    if (game.status === "playing" && game.drones.length === 0) {
+      game.wave += 1;
+      game.bullets = [];
+      spawnWave(game);
+    }
+  }
+
+  function restart() {
+    return createGame();
+  }
+
+  root.BB = { W, H, SHIP, BULLET, DRONE, START_LIVES, createGame, shoot, update, restart, hit };
+})(globalThis);
+
+</script>
+<script>
+// Boredom Blaster browser shell: canvas drawing, keyboard input and the frame loop.
+(function () {
+  const BB = globalThis.BB;
+  const canvas = document.getElementById("screen");
+  const ctx = canvas.getContext("2d");
+  canvas.width = BB.W;
+  canvas.height = BB.H;
+
+  let game = BB.createGame();
+  const keys = { left: false, right: false, fire: false };
+
+  // fixed starfield in three sizes
+  const stars = Array.from({ length: 90 }, (_, i) => ({
+    x: (i * 137.5) % BB.W, y: (i * 71.3) % BB.H, size: 1 + (i % 3),
+  }));
+
+  const KEYMAP = { ArrowLeft: "left", ArrowRight: "right", Space: "fire" };
+
+  addEventListener("keydown", (e) => {
+    if (e.code === "Enter" && game.status === "over") game = BB.restart();
+    const k = KEYMAP[e.code];
+    if (k) { keys[k] = true; e.preventDefault(); }
+  });
+  addEventListener("keyup", (e) => {
+    const k = KEYMAP[e.code];
+    if (k) keys[k] = false;
+  });
+
+  // on-screen pad for phones and tablets
+  const touch = matchMedia("(pointer: coarse)").matches;
+  for (const btn of document.querySelectorAll("[data-key]")) {
+    const k = btn.dataset.key;
+    const on = (e) => {
+      e.preventDefault();
+      if (k === "fire" && game.status === "over") game = BB.restart();
+      keys[k] = true;
+      btn.classList.add("down");
+    };
+    const off = (e) => { e.preventDefault(); keys[k] = false; btn.classList.remove("down"); };
+    btn.addEventListener("pointerdown", on);
+    btn.addEventListener("pointerup", off);
+    btn.addEventListener("pointercancel", off);
+    btn.addEventListener("pointerleave", off);
+  }
+
+  function drawShip(s) {
+    ctx.fillStyle = "#4df";
+    ctx.beginPath();
+    ctx.moveTo(s.x + s.w / 2, s.y);
+    ctx.lineTo(s.x + s.w, s.y + s.h);
+    ctx.lineTo(s.x + s.w / 2, s.y + s.h - 6);
+    ctx.lineTo(s.x, s.y + s.h);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawDrone(d) {
+    ctx.fillStyle = "#f5a";
+    ctx.fillRect(d.x + 4, d.y + 4, d.w - 8, d.h - 8);
+    ctx.fillStyle = "#fd4";
+    ctx.fillRect(d.x, d.y + 8, d.w, 4);
+    ctx.fillRect(d.x + 9, d.y + 8, 3, 3);
+    ctx.fillRect(d.x + 16, d.y + 8, 3, 3);
+  }
+
+  function center(text, y, size, color) {
+    ctx.fillStyle = color;
+    ctx.font = size + "px 'Press Start 2P', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(text, BB.W / 2, y);
+  }
+
+  function draw() {
+    ctx.fillStyle = "#050514";
+    ctx.fillRect(0, 0, BB.W, BB.H);
+    ctx.fillStyle = "#fff";
+    for (const s of stars) ctx.fillRect(s.x, s.y, s.size, s.size);
+
+    for (const d of game.drones) drawDrone(d);
+    ctx.fillStyle = "#ff6";
+    for (const b of game.bullets) ctx.fillRect(b.x, b.y, b.w, b.h);
+    const blink = game.invuln > 0 && Math.floor(game.invuln * 10) % 2 === 0;
+    if (game.status === "playing" && !blink) drawShip(game.ship);
+
+    ctx.font = "12px 'Press Start 2P', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "left";
+    ctx.fillText("SCORE " + game.score, 12, 24);
+    ctx.textAlign = "center";
+    ctx.fillText("WAVE " + game.wave, BB.W / 2, 24);
+    ctx.textAlign = "right";
+    ctx.fillText("LIVES " + game.lives, BB.W - 12, 24);
+
+    if (game.status === "over") {
+      center("GAME OVER", BB.H / 2 - 10, 32, "#f55");
+      center("SCORE " + game.score, BB.H / 2 + 30, 14, "#fff");
+      center(touch ? "TAP FIRE TO RESTART" : "PRESS ENTER TO RESTART", BB.H / 2 + 62, 11, "#4df");
+    }
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    BB.update(game, dt, keys);
+    draw();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  globalThis.__game = () => game; // handy for debugging in the console
+})();
+
+</script>
+</body></html>
