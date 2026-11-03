@@ -1,0 +1,8 @@
+{
+  "name": "boredom-blaster-v1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Boredom Blaster v1. Owner and author: Mauricio Alonso Moya Tapia.",
+  "type": "module",
+  "scripts": { "test": "node --test" }
+}
