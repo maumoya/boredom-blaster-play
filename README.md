@@ -14,6 +14,7 @@
   <img src="https://img.shields.io/badge/privacy-no%20login%20%C2%B7%20no%20tracking-7c5cfc" alt="Privacy: no login, no tracking">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
   <br>
+  <a href="https://github.com/maumoya/boredom-blaster-play/actions/workflows/test.yml"><img src="https://github.com/maumoya/boredom-blaster-play/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
   <a href="https://github.com/maumoya/boredom-blaster-play/actions/workflows/codeql.yml"><img src="https://github.com/maumoya/boredom-blaster-play/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/maumoya/boredom-blaster-play"><img src="https://api.scorecard.dev/projects/github.com/maumoya/boredom-blaster-play/badge" alt="OpenSSF Scorecard"></a>
   <a href="https://github.com/maumoya/boredom-blaster-play/releases/latest"><img src="https://img.shields.io/github/v/release/maumoya/boredom-blaster-play" alt="Latest release"></a>
@@ -54,9 +55,12 @@ curl -s https://maumoya.github.io/boredom-blaster-play/ | shasum -a 256 && curl 
 
 The two hashes match when the live game is exactly the code in this repository.
 
-## Security
+Smoke tests (`test/`, run with `node --test`) check that the page is complete, has no external scripts and that its
+JavaScript parses.
 
-Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 ## About the author
 
