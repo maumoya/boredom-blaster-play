@@ -1,0 +1,18 @@
+# Boredom Blaster v1
+
+> The first version of Boredom Blaster: a free retro arcade space shooter for short breaks, in one 13.6 KB HTML
+> file. Plain JavaScript and HTML canvas, no engine, no login. MIT licensed. Owner and author: Mauricio Alonso
+> Moya Tapia. The newer game is Boredom Blaster v2.
+
+- Play v1: https://maumoya.github.io/boredom-blaster-play/
+- Boredom Blaster v2: https://github.com/maumoya/boredom-blaster-v2
+
+## Docs
+
+- [README](https://github.com/maumoya/boredom-blaster-play/blob/main/README.md): what the game is, results, how it is built
+- [Changelog](https://github.com/maumoya/boredom-blaster-play/blob/main/CHANGELOG.md): releases and measured numbers
+
+## Optional
+
+- [Security policy](https://github.com/maumoya/boredom-blaster-play/blob/main/SECURITY.md)
+- [Source](https://github.com/maumoya/boredom-blaster-play/blob/main/index.html): the whole game in one file
