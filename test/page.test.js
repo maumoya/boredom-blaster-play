@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script[^>]*>/gi)].map((m) => ({ attrs: m[1], code: m[2] }));
 
 test("the page has a title, a canonical link and the game canvas", () => {
   assert.match(html, /<title>[^<]*Boredom Blaster/);
@@ -13,12 +13,12 @@ test("the page has a title, a canonical link and the game canvas", () => {
 });
 
 test("no external scripts: the whole game ships in index.html", () => {
-  assert.doesNotMatch(html, /<script[^>]+src=/);
+  for (const s of scripts) assert.doesNotMatch(s.attrs, /\bsrc\s*=/i);
   assert.ok(scripts.length > 0);
 });
 
 test("every inline script is valid JavaScript", () => {
-  for (const code of scripts) assert.doesNotThrow(() => new Function(code));
+  for (const { code } of scripts) assert.doesNotThrow(() => new Function(code));
 });
 
 test("the link-preview images are 1200 x 630 PNGs", () => {
