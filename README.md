@@ -17,6 +17,7 @@
   <a href="https://github.com/maumoya/boredom-blaster-play/actions/workflows/test.yml"><img src="https://github.com/maumoya/boredom-blaster-play/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
   <a href="https://github.com/maumoya/boredom-blaster-play/actions/workflows/codeql.yml"><img src="https://github.com/maumoya/boredom-blaster-play/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/maumoya/boredom-blaster-play"><img src="https://api.scorecard.dev/projects/github.com/maumoya/boredom-blaster-play/badge" alt="OpenSSF Scorecard"></a>
+  <a href="https://www.bestpractices.dev/projects/16291"><img src="https://www.bestpractices.dev/projects/16291/badge" alt="OpenSSF Best Practices"></a>
   <a href="https://github.com/maumoya/boredom-blaster-play/releases/latest"><img src="https://img.shields.io/github/v/release/maumoya/boredom-blaster-play" alt="Latest release"></a>
 </p>
 
