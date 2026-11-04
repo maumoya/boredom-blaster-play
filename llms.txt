@@ -1,6 +1,6 @@
 # Boredom Blaster v1
 
-> The first version of Boredom Blaster: a free retro arcade space shooter for short breaks, in one 13.6 KB HTML
+> The first version of Boredom Blaster: a free retro arcade space shooter for short breaks, in one <!--fact:size_kb-->13.6 KB<!--/fact--> HTML
 > file. Plain JavaScript and HTML canvas, no engine, no login. MIT licensed. Owner and author: Mauricio Alonso
 > Moya Tapia. The newer game is Boredom Blaster v2.
 

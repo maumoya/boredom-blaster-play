@@ -21,3 +21,9 @@ jobs:
 
       - name: Run tests
         run: node --test
+
+      - name: Every published number matches launch/facts.json
+        run: |
+          python3 -I tools/sync.py check . --no-outward
+          bytes=$(python3 -I -c 'import json;print(json.load(open("launch/facts.json"))["size_bytes"]["value"].replace(",",""))')
+          test "$(wc -c < index.html | tr -d ' ')" = "$bytes" || { echo "index.html is not $bytes bytes: re-measure and update launch/facts.json"; exit 1; }
