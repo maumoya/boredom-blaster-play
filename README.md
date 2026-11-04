@@ -21,6 +21,10 @@
   <a href="https://github.com/maumoya/boredom-blaster-play/releases/latest"><img src="https://img.shields.io/github/v/release/maumoya/boredom-blaster-play" alt="Latest release"></a>
 </p>
 
+<p align="center">
+  <img src="assets/demo.gif" width="300" alt="Boredom Blaster v1 gameplay through the first three waves.">
+</p>
+
 # Boredom Blaster v1
 
 **The first version of Boredom Blaster: a retro arcade space shooter for short breaks.** One HTML file,
