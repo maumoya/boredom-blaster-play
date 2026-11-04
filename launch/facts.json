@@ -1,0 +1,6 @@
+{
+ "size_kb": {"value": "13.6 KB", "source": "wc -c index.html = 13,613 bytes", "date": "2026-11-03"},
+ "size_bytes": {"value": "13,613", "source": "wc -c index.html; live page has the same SHA-256", "date": "2026-11-03"},
+ "load_time": {"value": "0.14 s", "source": "curl time_total on the live page", "date": "2026-11-03"},
+ "external_scripts": {"value": "0", "source": "script src= tags in index.html", "date": "2026-11-03"}
+}

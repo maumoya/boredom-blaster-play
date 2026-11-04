@@ -33,7 +33,7 @@ scores, is [Boredom Blaster v2](https://github.com/maumoya/boredom-blaster-v2).
 
 - **Arcade classic.** Rows of pixel saucers, one ship and a fire button.
 - **Mac or phone.** Keyboard on the desktop, touch on the phone.
-- **Tiny.** Everything (game, art and sound) lives in one 13.6 KB `index.html`, plus one web font.
+- **Tiny.** Everything (game, art and sound) lives in one <!--fact:size_kb-->13.6 KB<!--/fact--> `index.html`, plus one web font.
 
 ## How it is built
 
@@ -44,11 +44,13 @@ GitHub Pages serves `index.html` as it is. `og.png` and `og2.png` are the link-p
 
 Measured on 2026-11-03 against `main` at `7e6aec7` (release v1.0.0). Repeat it with the command below.
 
+<img src="assets/size-card.svg" align="right" width="220" alt="The whole game in one 13.6 KB file, 0 external scripts">
+
 | Check | Result |
 |---|---|
-| Live page | HTTP **200**, **13,613 bytes**, loaded in 0.14 s |
+| Live page | HTTP **200**, **<!--fact:size_bytes-->13,613<!--/fact--> bytes**, loaded in <!--fact:load_time-->0.14 s<!--/fact--> |
 | Live page is this repo's `main` | SHA-256 of the live page = SHA-256 of `index.html` (`391badb7…`) |
-| External scripts | **0** (one Google Fonts stylesheet) |
+| External scripts | **<!--fact:external_scripts-->0<!--/fact-->** (one Google Fonts stylesheet) |
 
 ```bash
 curl -s https://maumoya.github.io/boredom-blaster-play/ | shasum -a 256 && curl -s https://raw.githubusercontent.com/maumoya/boredom-blaster-play/main/index.html | shasum -a 256

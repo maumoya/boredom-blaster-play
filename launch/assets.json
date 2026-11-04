@@ -1,0 +1,4 @@
+[
+ {"path": "assets/size-card.svg", "template": "launch/templates/size-card.svg", "uses": ["size_kb", "external_scripts"]},
+ {"name": "Repo description", "outward": "check the GitHub About text shows the same size as the README", "uses": ["size_kb"]}
+]
